@@ -24,13 +24,12 @@ public class ShipController : MonoBehaviour
         }
     }
 
-    // This isn't a mistake; contacts will usually be altered with Add() and Remove(), and should be read-only from the outside.
     public HashSet<Collider> Contacts{get; private set;} = new();
 
     private LayerMask fireMask;
     public float SensorRadius{get; set;}
 
-    void Start()
+    void Awake()
     {
         Health = MaxHealth;
         Rbody = GetComponentInChildren<Rigidbody>();
@@ -57,9 +56,9 @@ public class ShipController : MonoBehaviour
             Debug.DrawRay(transform.position, transform.TransformDirection(Vector3.forward) * hit.distance, Color.red);
             if (hit.collider)
                 if(hit.collider.GetComponentInParent<ShipController>().TakeDamage(10f)){
-                    BroadcastMessage("OnShotKill");
+                    SendMessage("OnShotKill");
                 }
-                BroadcastMessage("OnShotHit");
+                SendMessage("OnShotHit");
         }
         else
         {
@@ -67,16 +66,15 @@ public class ShipController : MonoBehaviour
         }
     }
 
-    // Yes these are stubby but maybe I'll need callbacks later idk
     public bool TakeDamage(float damage){
-        BroadcastMessage("OnTakeDamage", damage);
+        SendMessage("OnTakeDamage", damage);
         Health -= damage;
         if(Health == 0f){
-            BroadcastMessage("OnDeath");
+            SendMessageUpwards("OnShipDeath");
 
-            // Use later with multiple ships
-            // gameObject.SetActive(false);
+            Destroy(gameObject);
 
+            // Destroy is at end of frame, this will still execute
             return true;
         }
         return false;
